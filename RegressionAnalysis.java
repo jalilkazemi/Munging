@@ -119,8 +119,8 @@ public  class  RegressionAnalysis<R extends Regression<P, E>, P extends Paramete
 		return crossValidSet;
 	}
 
-	public void setOptimPars(int maxiter) {
-		model.setOptimPars(maxiter);
+	public void setOptimPars(int maxiter, double alpha) {
+		model.setOptimPars(maxiter, alpha);
 	}
 
 	public void learn(P[] parsList) {
