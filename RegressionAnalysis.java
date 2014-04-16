@@ -20,6 +20,7 @@ public  class  RegressionAnalysis<R extends Regression<P, E>, P extends Paramete
 	R model;
 	List<E> estimates;
 
+	StringBuilder report = null;
 
 	public RegressionAnalysis(R model) {
 		this.model = model;
@@ -135,7 +136,7 @@ public  class  RegressionAnalysis<R extends Regression<P, E>, P extends Paramete
 		E bestEstimateOneDim;
 		double bestErrorOneDim;
 		int bestParamOneDim;
-		StringBuilder report = new StringBuilder();
+		report = new StringBuilder();
 		for (int d = 0; d < ndependentVars; d++) {
 			System.out.println("Estimation of dependent variable #" + (d + 1));
 			report.append("\nDependent var #" + (d + 1));
@@ -169,6 +170,13 @@ public  class  RegressionAnalysis<R extends Regression<P, E>, P extends Paramete
 			report.append("\n\nThe best accuracy is given by : " + parsList[bestParamOneDim]);
 		}
 		System.out.println(report.toString());
+	}
+
+	public String getLastReport() {
+		if(report != null)
+			return report.toString();
+		else
+			throw new RuntimeException("No learing has occured.");
 	}
 
 	public double[] predict(double[] xExample) {
@@ -268,8 +276,8 @@ public  class  RegressionAnalysis<R extends Regression<P, E>, P extends Paramete
 			try {if(in != null) in.close();} catch(IOException e) {e.printStackTrace();}
 		}
 		String xml = builder.toString();
-		Pattern mu_p = Pattern.compile("\\bmu:\\s*\\[(\\s*[-+]?\\d*(?:[.]\\d*)?(?:e[-+]?\\d+)?(?:\\s*,\\s*[-+]?\\d*(?:[.]\\d*)?(?:e[-+]?\\d+)?)*\\s*)\\]");
-		Pattern sig_p = Pattern.compile("\\bsig:\\s*\\[(\\s*[-+]?\\d*(?:[.]\\d*)?(?:e[-+]?\\d+)?(?:\\s*,\\s*[-+]?\\d*(?:[.]\\d*)?(?:e[-+]?\\d+)?)*\\s*)\\]");
+		Pattern mu_p = Pattern.compile("\\bmu:\\s*\\[(\\s*[-+]?\\d*(?:[.]\\d*)?(?:[eE][-+]?\\d+)?(?:\\s*,\\s*[-+]?\\d*(?:[.]\\d*)?(?:[eE][-+]?\\d+)?)*\\s*)\\]");
+		Pattern sig_p = Pattern.compile("\\bsig:\\s*\\[(\\s*[-+]?\\d*(?:[.]\\d*)?(?:[eE][-+]?\\d+)?(?:\\s*,\\s*[-+]?\\d*(?:[.]\\d*)?(?:[eE][-+]?\\d+)?)*\\s*)\\]");
 		Pattern estimates_p = Pattern.compile("\\bestimates:\\s*\\[\\s*\\{\\s*dimension:\\s*\\d+\\s*,\\s*data:\\s*\\[\\s*\\{[^\\[\\]]+\\}\\s*\\]\\s*\\}(\\s*,\\s*\\{\\s*dimension:\\s*\\d+\\s*,\\s*data:\\s*\\[\\s*\\{[^\\[\\]]+\\}\\s*\\]\\s*\\})*\\s*\\]");
 		Matcher mu_m = mu_p.matcher(xml);
 		int n = 0;
@@ -281,6 +289,8 @@ public  class  RegressionAnalysis<R extends Regression<P, E>, P extends Paramete
 			for (int j = 0; j < n; j++) {
 				mu[j] = Double.parseDouble(muFields[j]);
 			}
+		} else {
+			throw new RuntimeException("mu block has not been detected.");
 		}
 		Matcher sig_m = sig_p.matcher(xml);
 		if(sig_m.find()) {
@@ -291,6 +301,8 @@ public  class  RegressionAnalysis<R extends Regression<P, E>, P extends Paramete
 			for (int j = 0; j < n; j++) {
 				sig[j] = Double.parseDouble(sigFields[j]);
 			}			
+		} else {
+			throw new RuntimeException("sig block has not been detected.");
 		}
 		Matcher estimates_m = estimates_p.matcher(xml);
 		if(estimates_m.find()) {
@@ -302,6 +314,8 @@ public  class  RegressionAnalysis<R extends Regression<P, E>, P extends Paramete
 				ndependentVars++;
 				estimates.add(factory.valueOf(dimension_m.group(1)));
 			}
+		} else {
+			throw new RuntimeException("estimates block has not been detected.");
 		}
 	}
 
